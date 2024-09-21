@@ -59,6 +59,21 @@ void simulate_step(std::vector<int> currentCells, std::vector<int>& nextCells) {
   }
 }
 
+void computeLongestConsequetiveOnes(std::vector<int>& cells) {
+  size_t count = 0;
+  size_t max = 0;
+  for(int i : cells) {
+    if(i == 1) {
+      count += 1;
+      max = count > max ? count : max;
+    }else {
+      count = 0;
+    }
+  }
+
+  std::cout << " Longest 1s: " << max;
+}
+
 void simulate(size_t steps, std::vector<int> currentCells, std::vector<int>& nextCells) {
   using namespace std::chrono_literals;
 
@@ -66,9 +81,12 @@ void simulate(size_t steps, std::vector<int> currentCells, std::vector<int>& nex
     simulate_step(currentCells, nextCells);
     print(nextCells);
 
+    computeLongestConsequetiveOnes(nextCells);
+
     currentCells = nextCells;
     std::cout << std::endl;
-    
+
+
     // pause program by a second between 2 iterations
     if(i % 2 == 0) {
       std::this_thread::sleep_for(1000ms);
