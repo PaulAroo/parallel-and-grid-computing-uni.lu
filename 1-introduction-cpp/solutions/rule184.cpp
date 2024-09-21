@@ -67,6 +67,11 @@ int main(int argc, char** argv) {
 
     cells = nextCells;
     std::cout << std::endl;
+    
+    // pause program by a second between 2 iterations
+    if(i % 2 == 0) {
+      std::this_thread::sleep_for(1000ms);
+    }
   }
 
 
