@@ -14,9 +14,9 @@ public:
 
   /* Copy constructor */
   IntVector(const IntVector& other) : n(other.n), cap(other.cap) {
-    values = new int[cap]();
     // memcpy(values, other.values, cap);
     if(cap > 0) {
+      values = new int[cap]();
       for(size_t i = 0; i < n; i++) {
         values[i] = other.values[i];
       }
