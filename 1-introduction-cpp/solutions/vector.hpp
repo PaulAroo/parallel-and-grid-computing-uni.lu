@@ -22,6 +22,21 @@ public:
     else {
       values = nullptr;
     }
+    printf("copied \n");
+  }
+
+  Vector(Vector&& other) : n(other.n), cap(other.cap) {
+    if(cap > 0) {
+      values = other.values;
+
+      other.n = 0;
+      other.cap = 0;
+      other.values = nullptr;
+    }
+    else {
+      values = nullptr;
+    }
+    printf("moved \n");
   }
 
   /* Destructor */
