@@ -1,3 +1,6 @@
+
+// Implement a map function taking a vector and applying a function f to each of its component. Suppose an integer vector v with the values 1,-5,6, then map(v, [](int x) { return x * 2; }) modifies v in-place and double each value.
+
 template <class T>
 class Vector {
   /* The number of elements currently in the array (as stored by the user). */
@@ -10,6 +13,11 @@ public:
 
   /* Default constructor */
   Vector() : n(0), cap(0), values(nullptr) {}
+
+  /* allocate an array of size `n` filled with 0. */
+  Vector(size_t n) : n(n), cap(n) {
+    values = new T[cap]();
+  };
 
   /* Copy constructor */
   Vector(const Vector& other): n(other.n), cap(other.cap) {
@@ -25,6 +33,8 @@ public:
     printf("copied \n");
   }
 
+
+  // Move constructor
   Vector(Vector&& other) : n(other.n), cap(other.cap) {
     if(cap > 0) {
       values = other.values;
@@ -43,11 +53,6 @@ public:
   ~Vector() {
     delete[] values;
   }
-
-  /* allocate an array of size `n` filled with 0. */
-  Vector(size_t n) : n(n), cap(n) {
-    values = new T[cap]();
-  };
 
   size_t capacity() const {
     return cap;
@@ -121,3 +126,35 @@ public:
     return values[i];
   };
 };
+
+
+template <typename T, typename Func>
+void map(Vector<T>& v, Func f) {
+  for(size_t i = 0; i < v.size(); ++i) {
+    v[i] = f(v[i]);
+  }
+};
+
+
+// since auto is used add flag -std=c++20 to gcc to compile
+// g++ -std=c++20 <path_to_file
+
+template <typename T>
+T fold_left(Vector<T>& vec, int accu, auto f) {
+  int value = accu;
+  for(int i = 0; i < vec.size(); ++i) {
+    value = f(value, vec[i]);
+  }
+
+  return value;
+}
+
+template <typename T>
+T fold_right(Vector<T>& vec, int accu, auto f) {
+  int value = accu;
+  for(int i = vec.size() - 1; i >= 0; --i) {
+    value = f(value, vec[i]);
+  }
+
+  return value;
+}
