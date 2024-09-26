@@ -44,11 +44,11 @@ public:
   };
 
   void resize(size_t new_size) {
-    if(new_size > capacity()) {
+    if(new_size > cap) {
       reserve(new_size);
     }
 
-    if(new_size > size()) {
+    if(new_size > n) {
       for(size_t i = n; i < new_size; ++i) {
         values[i] = 0;
       }
@@ -58,7 +58,7 @@ public:
   };
 
   void reserve(size_t new_cap) {
-    if(new_cap > capacity()) {
+    if(new_cap > cap) {
       int* new_values = new int[new_cap];
       for(size_t i = 0; i < n; ++i) {
         new_values[i] = values[i];
