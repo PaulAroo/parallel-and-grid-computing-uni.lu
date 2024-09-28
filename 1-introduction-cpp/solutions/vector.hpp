@@ -140,9 +140,8 @@ void map(Vector<T>& v, Func f) {
 //  Implement reduce functions fold_left and fold_right
 template <typename T, typename Func>
 T fold_left(Vector<T>& vec, int accu, Func f) {
-  int value = accu;
   for(int i = 0; i < vec.size(); ++i) {
-    value = f(value, vec[i]);
+    accu = f(accu, vec[i]);
   }
 
   // TODO: test this implementation (range based for loops)
@@ -151,15 +150,14 @@ T fold_left(Vector<T>& vec, int accu, Func f) {
   //   value = f(value, v);
   // }
 
-  return value;
+  return accu;
 }
 
 template <typename T, typename Func>
 T fold_right(Vector<T>& vec, int accu, Func f) {
-  int value = accu;
   for(int i = vec.size() - 1; i >= 0; --i) {
-    value = f(value, vec[i]);
+    accu = f(accu, vec[i]);
   }
 
-  return value;
+  return accu;
 }
