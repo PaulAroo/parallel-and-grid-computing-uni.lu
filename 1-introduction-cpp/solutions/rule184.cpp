@@ -3,6 +3,8 @@
 #include <vector>
 #include <thread>
 
+using namespace std::chrono_literals;
+
 std::vector<int> initialize_cells(size_t n) {
   std::vector<int> cells(n);
   // std::mt19937 m{std::random_device{}()};
@@ -28,29 +30,25 @@ void print(std::vector<int> cells) {
 
 
 void simulate_step(std::vector<int> currentCells, std::vector<int>& nextCells) {
-  std::mt19937 m{0};
-  std::uniform_int_distribution<int> u{0, 1};
+  // std::mt19937 m{0};
+  // std::uniform_int_distribution<int> u{0, 1};
+
+  // treat as circular
 
   for(int j = 0; j < currentCells.size(); ++j) {
-    int currentCell = currentCells[j];
-
-    if(currentCell == 1) { // cell has state 1, pick from the right
-      if(j == 0) {
-        nextCells[j] = currentCells[j + 1];
-      }
-      else if(j == currentCells.size() - 1) {
-        nextCells[j] = u(m);
+    // cell has state 1, pick from the right
+    if(currentCells[j] == 1) { 
+      if(j == currentCells.size() - 1) { //on the right edge
+        nextCells[j] = currentCells[0];
       }
       else {
         nextCells[j] = currentCells[j + 1];
       }
     }
-    else { // cell has state 0, pick from the left
-      if(j == 0) {
-        nextCells[j] = u(m);
-      }
-      else if(j == currentCells.size() - 1) {
-        nextCells[j] = currentCells[j - 1];
+     // cell has state 0, pick from the left
+    else {
+      if(j == 0) { //on the left edge
+        nextCells[j] = currentCells[currentCells.size() - 1];
       }
       else {
         nextCells[j] = currentCells[j - 1];
@@ -75,8 +73,6 @@ void computeLongestConsequetiveOnes(std::vector<int>& cells) {
 }
 
 void simulate(size_t steps, std::vector<int> currentCells, std::vector<int>& nextCells) {
-  using namespace std::chrono_literals;
-
   for(int i = 0; i < steps; ++i) {
     simulate_step(currentCells, nextCells);
     print(nextCells);
