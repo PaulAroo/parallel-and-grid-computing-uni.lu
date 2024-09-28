@@ -1,6 +1,4 @@
 
-// Implement a map function taking a vector and applying a function f to each of its component. Suppose an integer vector v with the values 1,-5,6, then map(v, [](int x) { return x * 2; }) modifies v in-place and double each value.
-
 template <class T>
 class Vector {
   /* The number of elements currently in the array (as stored by the user). */
@@ -128,6 +126,9 @@ public:
 };
 
 
+
+// Implement a map function taking a vector and applying a function f to each of its component.
+// Suppose an integer vector v with the values 1,-5,6, then map(v, [](int x) { return x * 2; }) modifies v in-place and double each value.
 template <typename T, typename Func>
 void map(Vector<T>& v, Func f) {
   for(size_t i = 0; i < v.size(); ++i) {
@@ -136,21 +137,25 @@ void map(Vector<T>& v, Func f) {
 };
 
 
-// since auto is used add flag -std=c++20 to gcc to compile
-// g++ -std=c++20 <path_to_file
-
-template <typename T>
-T fold_left(Vector<T>& vec, int accu, auto f) {
+//  Implement reduce functions fold_left and fold_right
+template <typename T, typename Func>
+T fold_left(Vector<T>& vec, int accu, Func f) {
   int value = accu;
   for(int i = 0; i < vec.size(); ++i) {
     value = f(value, vec[i]);
   }
 
+  // TODO: test this implementation (range based for loops)
+  // update: didn't work in maps when I tried it, begin and end errors
+  // for(const T& v : vec) {
+  //   value = f(value, v);
+  // }
+
   return value;
 }
 
-template <typename T>
-T fold_right(Vector<T>& vec, int accu, auto f) {
+template <typename T, typename Func>
+T fold_right(Vector<T>& vec, int accu, Func f) {
   int value = accu;
   for(int i = vec.size() - 1; i >= 0; --i) {
     value = f(value, vec[i]);
