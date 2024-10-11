@@ -37,7 +37,7 @@ void simulate_step(std::vector<int> currentCells, std::vector<int>& nextCells) {
 
   for(int j = 0; j < currentCells.size(); ++j) {
     // cell has state 1, pick from the right
-    if(currentCells[j] == 1) { 
+    if(currentCells[j] == 1) {
       if(j == currentCells.size() - 1) { //on the right edge
         nextCells[j] = currentCells[0];
       }
