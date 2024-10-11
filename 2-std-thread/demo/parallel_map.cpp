@@ -5,6 +5,10 @@
 #include <random>
 #include <algorithm>
 
+
+// - size of array must be greater than number of threads
+// - span takes in a start index and an extent(i.e the number of elements to grab)
+
 void map(auto& values, auto f) {
   for(auto& x : values) {
     x = f(x);
@@ -21,6 +25,38 @@ void parallel_map(std::vector<T>& values, auto f) {
   a.join();
   b.join();
 }
+
+template <class T>
+void parallel_map2(std::vector<T>& values, auto f, size_t num_threads) {
+
+  size_t base_size = values.size() / num_threads;
+  size_t rem = values.size() % num_threads;
+
+  std::vector<std::thread> threads;
+
+  size_t start = 0;
+  for(size_t i = 0; i < num_threads; ++i) {
+    size_t part_size = base_size + (i < rem ? 1 : 0);
+
+    std::span<T> part(values.begin() + start, part_size);
+
+    // threads.emplace_back(std::thread([&](){ map(part, f); }));
+
+    threads.emplace_back([=, &f]() {
+      map(part, f);
+    });
+    
+    start += part_size;
+  }
+
+  for(auto& th : threads) {
+    if(th.joinable()) {
+      th.join();
+    }
+  }
+
+}
+
 
 std::vector<int> init_random_vector(size_t n) {
   std::vector<int> v(n);
@@ -73,7 +109,7 @@ int main(int argc, char** argv) {
   std::vector<int> v2 = v1;
   auto twice = [](int x) { return x * 2; };
   long single_thread_ms = benchmark_one_ms([&](){ map(v1, twice); });
-  long multithreaded_ms = benchmark_one_ms([&](){ parallel_map(v2, twice); });
+  long multithreaded_ms = benchmark_one_ms([&](){ parallel_map2(v2, twice, num_threads); });
   std::cout << "Single threaded: " << single_thread_ms << "ms" << std::endl;
   std::cout << num_threads << " threads: " << multithreaded_ms << "ms" << std::endl;
   check_equal_vector(v1, v2);
