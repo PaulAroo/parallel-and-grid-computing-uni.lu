@@ -49,6 +49,20 @@
     "stop_token": "cpp",
     "streambuf": "cpp",
     "thread": "cpp",
-    "typeinfo": "cpp"
+    "typeinfo": "cpp",
+    "span": "cpp",
+    "__locale": "cpp",
+    "barrier": "cpp",
+    "bitset": "cpp",
+    "charconv": "cpp",
+    "condition_variable": "cpp",
+    "cstring": "cpp",
+    "optional": "cpp",
+    "iomanip": "cpp",
+    "mutex": "cpp",
+    "sstream": "cpp",
+    "variant": "cpp",
+    "format": "cpp",
+    "__nullptr": "cpp"
   }
 }
