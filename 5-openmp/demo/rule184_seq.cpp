@@ -38,6 +38,7 @@ void print(const std::vector<int>& cells) {
 }
 
 void simulate_step(const std::vector<int>& current, std::vector<int>& next) {
+  #pragma omp parallel for
   for(size_t i = 1; i < current.size()-1; ++i) {
     if(current[i] == 0) {
       next[i] = current[i-1];

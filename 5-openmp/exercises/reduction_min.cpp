@@ -6,7 +6,12 @@
 #include <chrono>
 
 int reduction_min(const std::vector<int>& a) {
-  return 0;
+  int minimum = INT32_MAX;
+  // #pragma omp parallel for reduction(std::min:minimum)
+  for(int i = 0; i < a.size(); ++i) {
+    minimum = std::min(a[i], minimum);
+  }
+  return minimum;
 }
 
 std::vector<int> init_random_vector(size_t n) {
