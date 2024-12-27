@@ -1,5 +1,8 @@
 #include <mutex>
-template <class T>
+#include <semaphore>
+#include <iostream>
+
+template <typename T>
 class Vector {
   /* The number of elements currently in the array (as stored by the user). */
   size_t n;
@@ -7,7 +10,7 @@ class Vector {
   size_t cap;
   T* values;
 
-  std::mutex m;
+  // std::mutex m;
 
 public:
 
@@ -90,8 +93,8 @@ public:
 
   /* Add the value `v` at the back of the vector, reallocating if necessary. */
   void push_back(const T& v) {
-    std::lock_guard<std::mutex> guard(m);
-    std::cout << "value added " << v << std::endl;
+    // std::lock_guard<std::mutex> guard(m);
+    // std::cout << "value added " << v << std::endl;
     if(n == cap) {
       size_t new_capacity = cap == 0 ? 1 : cap * 2;
       reserve(new_capacity);
@@ -102,9 +105,9 @@ public:
   /* Remove the last element of the array.
      Precondition: `size() != 0`. */
   void pop_back() {
-    std::lock_guard<std::mutex> guard(m);
+    // std::lock_guard<std::mutex> guard(m);
     if(n != 0) {
-      std::cout << "value removed " << values[n-1] << std::endl;
+      // std::cout << "value removed " << values[n-1] << std::endl;
       n--;
     }
   };
@@ -129,6 +132,53 @@ public:
   const T& operator[](size_t i) const {
     return values[i];
   };
+
+  Vector& operator=(Vector other) {  // Pass by value for automatic copy
+    swap(*this, other);  // Swap the contents
+    std::cout << "assigned" << std::endl;
+    return *this;
+  }
+
+  friend void swap(Vector& first, Vector& second) noexcept {
+    using std::swap;
+    swap(first.n, second.n);
+    swap(first.cap, second.cap);
+    swap(first.values, second.values);
+  }
+
+};
+
+template <typename T>
+class Buffer {
+private:
+  Vector<T> data;
+  std::counting_semaphore<> items{0};
+  std::counting_semaphore<> spaces{3};
+  std::binary_semaphore mutex{1};
+  std::mutex mtx;
+  int upper_limit = 3;
+
+public:
+  void produce(const T& item) {
+    spaces.acquire();
+    mutex.acquire();
+
+    data.push_back(item);
+    mutex.release();
+    std::cout << "produced: " << item << std::endl;
+    items.release();
+  }
+
+  T consume() {
+    items.acquire();
+    mutex.acquire();
+    T item = data.back();
+    data.pop_back();
+    mutex.release();
+    spaces.release();
+    std::cout << "consumed: " << item << std::endl;
+    return item;
+  }
 };
 
 
@@ -140,7 +190,6 @@ void map(Vector<T>& v, Func f) {
     v[i] = f(v[i]);
   }
 };
-
 
 //  Implement reduce functions fold_left and fold_right
 template <typename T, typename Func>

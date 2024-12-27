@@ -63,6 +63,9 @@
     "sstream": "cpp",
     "variant": "cpp",
     "format": "cpp",
-    "__nullptr": "cpp"
+    "__nullptr": "cpp",
+    "map": "cpp",
+    "fstream": "cpp",
+    "cinttypes": "cpp"
   }
 }
