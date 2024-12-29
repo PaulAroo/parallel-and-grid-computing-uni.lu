@@ -1,113 +1,80 @@
-
 #include <iostream>
-#include <cstring>
-#include <utility>
 #include <vector>
 #include <chrono>
-// #include <omp.h>
+#include <omp.h>
 
-
-// N-Queens node
-struct Node {
-  int depth; // depth in the tree
-  std::vector<int> board; // board configuration (permutation)
-
-  Node(size_t N): depth(0), board(N) {
-    for (int i = 0; i < N; i++) {
-      board[i] = i;
-    }
-  }
-  Node(const Node&) = default;
-  Node(Node&&) = default;
-  Node() = default;
-};
-
-// check if placing a queen is safe (i.e., check if all the queens already placed share
-// a same diagonal)
-bool isSafe(const std::vector<int>& board, const int row, const int col)
-{
+// Check if placing a queen is safe
+bool isSafe(const std::vector<int>& board, int row, int col) {
   for (int i = 0; i < row; ++i) {
-    if (board[i] == col - row + i || board[i] == col + row - i) {
+    if (board[i] == col || board[i] == col - row + i || board[i] == col + row - i) {
       return false;
     }
   }
-
   return true;
 }
 
-// evaluate a given node (i.e., check its board configuration) and branch it if it is valid
-// (i.e., generate its child nodes.)
-void evaluate_and_branch(const Node& parent, size_t& exploredTree, size_t& exploredSol)
-{
-  int depth = parent.depth;
-  int N = parent.board.size();
-
-  // if the given node is a leaf, then update counter and do nothing
+// Depth-first search for solutions
+void dfs(std::vector<int>& board, int depth, int N, size_t& num_sol, size_t& exploredTree) {
   if (depth == N) {
-    #pragma omp atomic
-    exploredSol++;
+    num_sol++;
+    return;
   }
-  // if the given node is not a leaf, then update counter and evaluate/branch it
-  else {
-    for (int j = depth; j < N; j++) {
-      if (isSafe(parent.board, depth, parent.board[j])) {
-        Node child(parent);
-        std::swap(child.board[depth], child.board[j]);
-        child.depth++;
+  for (int i = 0; i < N; ++i) {
+    if (isSafe(board, depth, i)) {
+      board[depth] = i;
+      exploredTree++;
+      dfs(board, depth + 1, N, num_sol, exploredTree);
+    }
+  }
+}
 
-        #pragma omp atomic
-        exploredTree++;
+// Parallel N-Queens solver
+void parallelNQueens(int N, int num_threads, size_t& num_sol, size_t& exploredTree) {
 
-        #pragma omp task
+  #pragma omp parallel num_threads(num_threads)
+  {
+    #pragma omp single
+    {
+      for (int i = 0; i < N; ++i) {
+        #pragma omp task shared(num_sol)
         {
-          #pragma omp critical
-          evaluate_and_branch(child, exploredTree, exploredSol);
+          std::vector<int> board(N, -1);
+          board[0] = i;
+          size_t local_sol = 0;
+          size_t local_exploredTree = 0;
+          dfs(board, 1, N, local_sol, local_exploredTree);
+          #pragma omp atomic
+          num_sol += local_sol;
+          exploredTree += local_exploredTree;
         }
       }
     }
   }
-}
 
+}
 
 int main(int argc, char** argv) {
   if (argc != 3) {
-    std::cout << "usage: " << argv[0] << " <number of queens> " << " <num_threads>" << std::endl;
-    exit(1);
+    std::cerr << "Usage: " << argv[0] << " <number of queens> <number of threads>" << std::endl;
+    return 1;
   }
 
+  int N = std::stoi(argv[1]);
+  int num_threads = std::stoi(argv[2]);
+  std::cout << "Solving " << N << "-Queens problem\n";
 
-  // problem size (number of queens) and thread number
-  size_t N = std::stoll(argv[1]);
-  size_t num_threads = std::stoi(argv[2]);
-  std::cout << "Solving " << N << "-Queens problem with " << num_threads << " threads\n" << std::endl;
-
-  // root node
-  Node root(N);
-
-  // statistics to check correctness (number of nodes explored and number of solutions found)
-  size_t exploredTree = 0;
-  size_t exploredSol = 0;
-
-  // beginning of the Depth-First tree-Search
   auto start = std::chrono::steady_clock::now();
 
-  #pragma omp parallel
-  {
-    #pragma omp single
-    {
-      #pragma omp task
-      evaluate_and_branch(root, exploredSol, exploredSol);
-    }
-  }
+  size_t num_sol = 0;
+  size_t exploredTree = 0;
 
+  parallelNQueens(N, num_threads, num_sol, exploredTree);
   auto end = std::chrono::steady_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-  // outputs
-  std::cout << "Time taken: " << duration.count() << " milliseconds" << std::endl;
-  std::cout << "Total solutions: " << exploredSol << std::endl;
-  std::cout << "Size of the explored tree: " << exploredTree << std::endl;
+  std::cout << "Time taken: " << duration.count() << " ms\n";
+  std::cout << "Total solutions: " << num_sol << std::endl;
+  std::cout << "Total exploredTree: " << exploredTree << std::endl;
 
   return 0;
-
 }
