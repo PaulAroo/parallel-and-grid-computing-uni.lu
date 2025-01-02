@@ -35,10 +35,17 @@ int main(int argc, char **argv)
     for(int i = 0; i < num_ping_pong; ++i) {
         if(send_ping && rank + 1 < num_procs) {
             MPI_Send(sdata.data(), sdata.size(), MPI_CHAR, rank + 1, 0, MPI_COMM_WORLD);
+            printf("%d send: %s to %d\n", rank, sdata.data(), rank + 1);
+
+            MPI_Recv(rdata.data(), rdata.size(), MPI_CHAR, rank + 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            printf("%d receive: %s from %d\n", rank, rdata.data(), rank + 1);
         }
         else {
             MPI_Recv(rdata.data(), rdata.size(), MPI_CHAR, rank - 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            printf("receive: %s from %d\n", rdata.data(), rank - 1);
+            // printf("%d receive: %s from %d\n", rank, rdata.data(), rank - 1);
+
+            MPI_Send(sdata.data(), sdata.size(), MPI_CHAR, rank - 1, 0, MPI_COMM_WORLD);
+            // printf("%d send: %s to %d\n", rank, sdata.data(), rank - 1);
         }
     }
 

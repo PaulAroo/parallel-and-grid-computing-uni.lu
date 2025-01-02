@@ -25,24 +25,33 @@ int main(int argc, char **argv)
 
   /** TODO: ping pong ring. */
   std::string ping("ping");
+  std::string pong("pong");
   std::string rdata(4, ' ');
   int next_rank = (rank + 1) % num_procs;
   int prev_rank = ((rank + num_procs) - 1) % num_procs;
 
   MPI_Request rq_send;
-  MPI_Request rq_receive;
-  int flag;
+  // MPI_Request rq_receive;
+  // int flag;
 
-  printf("%d: send ping to %d...\n", rank, next_rank);
-  MPI_Isend(ping.data(), ping.size(), MPI_CHAR, next_rank, 0, MPI_COMM_WORLD, &rq_send);
+  for(int i = 0; i < num_ping_pong; i++) {
+    MPI_Isend(ping.data(), ping.size(), MPI_CHAR, next_rank, 0, MPI_COMM_WORLD, &rq_send);
+    printf("%d: send ping to %d...\n", rank, next_rank);
 
+    MPI_Recv(rdata.data(), rdata.size(), MPI_CHAR, prev_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    printf("%d: receive ping from %d...\n", rank, prev_rank);
 
-  printf("%d: receive ping from %d...\n", rank, prev_rank);
-  MPI_Recv(rdata.data(), rdata.size(), MPI_CHAR, prev_rank, 0, MPI_COMM_WORLD);
+    MPI_Wait(&rq_send, MPI_STATUS_IGNORE);
 
-  MPI_Wait(&rq_send, MPI_STATUS_IGNORE);
+    // send pong
+    MPI_Isend(pong.data(), pong.size(), MPI_CHAR, prev_rank, 0, MPI_COMM_WORLD, &rq_send);
+    printf("%d: send pong to %d...\n", rank, prev_rank);
 
-  // send pong
+    MPI_Recv(rdata.data(), rdata.size(), MPI_CHAR, next_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    printf("%d: receive pong from %d...\n", rank, next_rank);
+
+    MPI_Wait(&rq_send, MPI_STATUS_IGNORE);
+  }
 
   /* Tear down the communication infrastructure */
   MPI_Finalize();
